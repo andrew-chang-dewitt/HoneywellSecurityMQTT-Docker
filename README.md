@@ -81,3 +81,7 @@ $ docker run -itd \
   -v /dev/bus/usb:/dev/bus/usb \
   honeywell-security-mqtt:customized 
 ```
+
+## Links
+
+- DockerHub image at [andrewchangdewitt/honeywell-security-mqtt](https://hub.docker.com/r/andrewchangdewitt/honeywell-security-mqtt)
