@@ -4,26 +4,16 @@
 # The container needs priviliged access to /dev/bus/usb on the host.
 # 
 # docker run -itd \					' *interactive mode & detatch
-#   --name rf2mqtt_v2 \					' optional name of container
+#   --name HoneywellSecurityMQTT \			' optional name of container
 #   --restart=always \					' optional restart for production runs
 #   --privileged \					' *required for proper access to usb dongle
 #   -v /dev/bus/usb:/dev/bus/usb \			' *required for any access to usb dongle
-#   rf2mqtt_v2						' *base image
+#   HoneywellSecurityMQTT				' *base image
 
-# docker run -itd --name rf2mqtt_v2 --restart=always --privileged -v /dev/bus/usb:/dev/bus/usb rf2mqtt_v2
+# docker run -itd --name HoneywellSecurityMQTT --restart=always --privileged -v /dev/bus/usb:/dev/bus/usb rf2mqtt_v2
 
 FROM arm64v8/alpine:latest
 MAINTAINER Andrew Chang-DeWitt
-
-#
-# Define environment variables
-# 
-# Use this variable when creating a container to specify the MQTT broker host.
-# uses default mqtt host & port values for most configurations, but can be 
-# specified w/ -e flag on run
-ENV MQTT_HOST="127.0.0.1"
-ENV MQTT_PORT=1883
-ENV LOG_FILE="/app/rf2mqtt.log"
 
 #
 # First install build dependencies 
@@ -48,18 +38,22 @@ RUN mkdir /tmp/src && \
 # 
 RUN apk add --no-cache mosquitto-dev
 
+#
+# Clone & modify fusterjj/HoneywellSecurityMQTT
+#
+RUN git clone https://github.com/fusterjj/HoneywellSecurityMQTT.git /app && \
+  cd /app/src && \
+  mv mqtt_config.h mqtt_config.h.original
+#
+# Copy user-modifiable mqtt configuration file in place of the
+# original from GitHub
+#
+COPY mqtt_config.h /app/src/mqtt_config.h
+
 # 
 # Build and install HoneywellSecurityMQTT
 #
-RUN git clone https://github.com/fusterjj/HoneywellSecurityMQTT.git /honeywell && \
-  cd /honeywell/src && \
-  mv mqtt_config.h mqtt_config.h.original && \
-  touch mqtt_config.h && \
-  echo '#define MQTT_USERNAME ""' >> mqtt_config.h && \
-  echo '#define MQTT_PASSWORD ""' >> mqtt_config.h && \
-  echo "#define MQTT_HOST \"$MQTT_HOST\"" >> mqtt_config.h && \
-  echo "#define MQTT_PORT $MQTT_PORT" >> mqtt_config.h && \
-  cat mqtt_config.h && \
+Run cdl /app/src && \
   ./build.sh
 
 #
@@ -81,4 +75,4 @@ COPY no-rtl.conf /etc/modprobe.d/no-rtl.conf
 #
 # When running a container this script will be executed
 #
-ENTRYPOINT ["/honeywell/src/honeywell"]
+ENTRYPOINT ["/app/src/honeywell"]
