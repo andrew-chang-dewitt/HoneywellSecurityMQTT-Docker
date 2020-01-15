@@ -4,13 +4,14 @@
 # The container needs priviliged access to /dev/bus/usb on the host.
 # 
 # docker run -itd \					' *interactive mode & detatch
-#   --name HoneywellSecurityMQTT \			' optional name of container
+#   --name honeywell-security-mqtt \			' optional name of container
 #   --restart=always \					' optional restart for production runs
+#   --network host					' *required for proper network access
 #   --privileged \					' *required for proper access to usb dongle
 #   -v /dev/bus/usb:/dev/bus/usb \			' *required for any access to usb dongle
-#   HoneywellSecurityMQTT				' *base image
+#   honeywell-security-mqtt				' *base image
 
-# docker run -itd --name HoneywellSecurityMQTT --restart=always --privileged -v /dev/bus/usb:/dev/bus/usb rf2mqtt_v2
+# docker run -itd --name honeywell-security-mqtt --restart=always --privileged -v /dev/bus/usb:/dev/bus/usb honeywell-security-mqtt
 
 FROM arm64v8/alpine:latest
 MAINTAINER Andrew Chang-DeWitt
@@ -53,7 +54,7 @@ COPY mqtt_config.h /app/src/mqtt_config.h
 # 
 # Build and install HoneywellSecurityMQTT
 #
-Run cdl /app/src && \
+Run cd /app/src && \
   ./build.sh
 
 #
